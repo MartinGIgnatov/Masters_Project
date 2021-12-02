@@ -18,7 +18,7 @@ def generate_path(rel_path, file_name, extension):
         raise Exception("Wrong data type for extension")
     if not isinstance(file_name, str):
         raise Exception("Wrong data type for file_name")
-    if not isinstance(rel_path, (str,list,None)):
+    if not isinstance(rel_path, (str,list)) and rel_path != None:
         raise Exception("Wrong data type for rel_path")
     if isinstance(rel_path, list):
         for el in rel_path:
@@ -29,7 +29,7 @@ def generate_path(rel_path, file_name, extension):
         path = ""
         if isinstance(rel_path, str):
             path =  f".\\{rel_path}\\{file_name}.{extension}"
-        elif isinstance(rel_path, None):
+        elif rel_path == None:
             path =  f".\\{file_name}.{extension}"
         else:
             path = ".\\"
@@ -41,7 +41,7 @@ def generate_path(rel_path, file_name, extension):
     elif os.name == "posix":   #### This is wrong
         if isinstance(rel_path, str):
             path =  f"/{rel_path}/{file_name}.{extension}"
-        elif isinstance(rel_path, None):
+        elif rel_path == None:
             path =  f"/{file_name}.{extension}"
         else:
             path = "/"
