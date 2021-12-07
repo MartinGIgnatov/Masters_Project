@@ -41,12 +41,12 @@ def generate_path(rel_path, file_name, extension):
     elif os.name == "posix":   #### This is wrong
         if isinstance(rel_path, str):
             path =  f"{rel_path}/{file_name}.{extension}"
-        elif rel_path == None:
+        elif isinstance(rel_path, None):
             path =  f"{file_name}.{extension}"
         else:
             path = ""
             for el in rel_path:
-                path = path + el + "/"
+                path = path + el + ""
             path = path + f"{file_name}.{extension}"
         return path
     else:
