@@ -6,12 +6,10 @@ from Model import *
 ########             Matric generation and save
 ##############################################################################
 
-<<<<<<< Updated upstream
-=======
+
 mus =  np.linspace(-0.05, 0.2, 51)
 Smags =  np.linspace(0, 0.05, 51)
 
->>>>>>> Stashed changes
 mu_lead = 0.02
 
 params_TI['mu_lead1'] = mu_lead
@@ -27,13 +25,8 @@ for i, mu in enumerate(mus):
     
     for j, s in enumerate(Smags):
         params_TI['S_mag'] = s
-<<<<<<< Updated upstream
-        result = scattering_matrix(systf1, params_TI, calibration=None)
-        
-        smat_e = np.array(pd.DataFrame(result[0]))
-=======
+
         smat_e = scattering_matrix(systf1, params_TI, calibration=None)[0]
->>>>>>> Stashed changes
         
         path = path_generator.generate_path(["Data","Antisymmetric_Scattering_Matrices",f"Scattering_Matrices_{params_TI['mu_lead1']}_flux_{flux}"],f"mu_bulk_{params_TI['mu_bulk']}_S_mag_{params_TI['S_mag']}","txt")
         np.savetxt(fname =path, X = smat_e)
@@ -45,14 +38,11 @@ for i, mu in enumerate(mus):
         
         
 #%%
-<<<<<<< Updated upstream
-## Generates the data necessary for the plot
-=======
 
 ##############################################################################
 ########             Time reversal check data save
 ##############################################################################
->>>>>>> Stashed changes
+
 
 mus = np.linspace(-0.05, 0.2, 51)
 Smags = np.linspace(0, 0.05, 51)
@@ -91,13 +81,11 @@ for i, mu in enumerate(mus):
         zeros = np.zeros(Average.shape)
         norm_diff = np.absolute(smat_e - smat_e_T)/Average
         
-<<<<<<< Updated upstream
-        diff = np.absolute(smat_e + smat_e_T)
-=======
+
         mask_non_diag = np.ones(zeros.shape) - np.identity(zeros.shape[0])
         
         diff = np.absolute(smat_e + smat_e_T) * mask_non_diag
->>>>>>> Stashed changes
+
         
         all_diff = np.where( Average < computing_error, zeros , diff)
         #"""
@@ -191,12 +179,14 @@ mus = np.linspace(-0.05, 0.2, 51)
 Smags = np.linspace(0, 0.05, 51)
 
 all_max_diff              = []
+all_max_diff_diagonal    = []
 all_max_diff_reflection   = []
 all_max_diff_transmission = []
 
-params_TI['mu_lead1'] = 0.02
-params_TI['mu_lead2'] = 0.02
-flux = "half" # quarter, half
+mu_lead = 0.02        #0.02 0.042
+params_TI['mu_lead1'] = mu_lead
+params_TI['mu_lead2'] = mu_lead
+flux = "half" # quarter, half, zero
 
 computing_error = 1e-12
 
@@ -204,10 +194,11 @@ time_start = time.time()
 
 for i, mu in enumerate(mus):
     abs_diff              = []
+    abs_diff_diagonal     = []
     abs_diff_reflection   = []
     abs_diff_transmission = []
     
-    params_TI['mu_bulk'] = params_TI['mu_lead1'] + mu
+    params_TI['mu_bulk'] = mu_lead + mu
     
     for j, s in enumerate(Smags):
         params_TI['S_mag'] = s
@@ -238,16 +229,19 @@ for i, mu in enumerate(mus):
         reflection_mask   = top_left_mask + bottom_right_mask
         transmission_mask = np.ones(zeros.shape) - reflection_mask
         
-        diff                  = np.absolute(smat_e + smat_e_T) * mask_non_diag
+        diff                  = np.absolute(smat_e + smat_e_T) * non_diag_mask
         all_diff              = np.where( Average < computing_error, zeros , diff)
+        all_diff_diagonal     = np.absolute(smat_e + smat_e_T) * np.identity(zeros.shape[0])
         all_diff_reflection   = all_diff * reflection_mask
         all_diff_transmission = all_diff * transmission_mask
         
         max_diff              = np.amax(all_diff)
+        max_diff_diagonal     = np.amax(all_diff_diagonal)
         max_diff_reflection   = np.amax(all_diff_reflection)
         max_diff_transmission = np.amax(all_diff_transmission)
         
         abs_diff.append(max_diff)
+        abs_diff_diagonal.append(max_diff_diagonal)
         abs_diff_reflection.append(max_diff_reflection)
         abs_diff_transmission.append(max_diff_transmission)
         
@@ -259,6 +253,7 @@ for i, mu in enumerate(mus):
         
         
     all_max_diff.append(abs_diff)
+    all_max_diff_diagonal.append(abs_diff_diagonal)
     all_max_diff_reflection.append(abs_diff_reflection)
     all_max_diff_transmission.append(abs_diff_transmission)
     
@@ -266,6 +261,8 @@ for i, mu in enumerate(mus):
 
 path = path_generator.generate_path("Data",f"Diff_asym_scattering_mu_lead_{params_TI['mu_lead1']}_flux_{flux}","txt")
 np.savetxt(fname =path, X = np.array(all_max_diff))
+path = path_generator.generate_path("Data",f"Diff_asym_scattering_mu_lead_{params_TI['mu_lead1']}_flux_{flux}_diagonal","txt")
+np.savetxt(fname =path, X = np.array(all_max_diff_diagonal))
 path = path_generator.generate_path("Data",f"Diff_asym_scattering_mu_lead_{params_TI['mu_lead1']}_flux_{flux}_reflection","txt")
 np.savetxt(fname =path, X = np.array(all_max_diff_reflection))
 path = path_generator.generate_path("Data",f"Diff_asym_scattering_mu_lead_{params_TI['mu_lead1']}_flux_{flux}_transmission","txt")
@@ -286,6 +283,8 @@ Smags = np.linspace(0, 0.05, 51)
 
 path = path_generator.generate_path("Data",f"Diff_asym_scattering_mu_lead_{mu_lead}_flux_{flux}","txt")
 all_max_diff = np.loadtxt(path)
+path = path_generator.generate_path("Data",f"Diff_asym_scattering_mu_lead_{mu_lead}_flux_{flux}_diagonal","txt")
+all_max_diff_diagonal = np.loadtxt(path)
 path = path_generator.generate_path("Data",f"Diff_asym_scattering_mu_lead_{params_TI['mu_lead1']}_flux_{flux}_reflection","txt")
 all_max_diff_reflection = np.loadtxt(path)
 path = path_generator.generate_path("Data",f"Diff_asym_scattering_mu_lead_{params_TI['mu_lead1']}_flux_{flux}_transmission","txt")
@@ -308,7 +307,19 @@ ax.set_xlabel('Correlated disorder strength (eV)')
 ax.set_ylabel('Bulk potential mismatch (eV)')
 div = make_axes_locatable(ax)
 cax = div.append_axes('right', '5%', '5%')
-ax.set_title(f'Abs Diff mu_lead = {mu_lead} flux = {flux} reflection')
+ax.set_title(f'Abs Diff mu_lead = {mu_lead} flux = {flux} diagonal')
+im = ax.imshow(all_max_diff_diagonal,extent = (min(Smags), max(Smags), min(mus), max(mus)),vmin = 0, vmax = np.max(all_max_diff) ,origin='lower', aspect='auto')
+fig.colorbar(im, cax=cax)
+path = path_generator.generate_path("Images",f"Diff_asym_scattering_mu_lead_{mu_lead}_flux_{flux}_diagonal","png")
+plt.savefig(path) 
+plt.show()
+
+fig, ax = plt.subplots()
+ax.set_xlabel('Correlated disorder strength (eV)')
+ax.set_ylabel('Bulk potential mismatch (eV)')
+div = make_axes_locatable(ax)
+cax = div.append_axes('right', '5%', '5%')
+ax.set_title(f'Abs Diff mu_lead = {mu_lead} flux = {flux} reflection non diagonal')
 im = ax.imshow(all_max_diff_reflection,extent = (min(Smags), max(Smags), min(mus), max(mus)),vmin = 0, vmax = np.max(all_max_diff),origin='lower', aspect='auto')
 fig.colorbar(im, cax=cax)
 path = path_generator.generate_path("Images",f"Diff_asym_scattering_mu_lead_{mu_lead}_flux_{flux}_reflection","png")
