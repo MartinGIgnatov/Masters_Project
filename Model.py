@@ -414,7 +414,7 @@ def scattering_matrix(syst, p, calibration=None):
     ## Assuming the left lead and the right lead have the same dimensions (same number of propagating modes)
     ## Calibrate the phase shift        
         for i in range(0, size_L):
-            shift_e = np.angle(smat_e[i][i+size_L]) - np.angle(smat_e[i+size_L][i]) - np.pi
+            shift_e = np.angle(smat_e[i][i+size_L]) - np.angle(smat_e[i+size_L][i]) - np.pi ## This generates the antisymmetry (fermions)
             calibration_e[i+size_L][i+size_L] = np.exp(1j*shift_e/2)
     else:
         print('same calibration!')
