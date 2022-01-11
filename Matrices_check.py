@@ -5,12 +5,12 @@ from Model import *
 mus = np.linspace(-0.05, 0.2, 51)
 Smags = np.linspace(0, 0.05, 51)
 
-mu_lead = 0.02
+mu_lead = 0.042 # single channel
 
 params_TI['mu_lead1'] = mu_lead
 params_TI['mu_lead2'] = mu_lead
-params_TI["B_x"]      = 0   # half flux is 0.5/(W_y*H_z)
-flux = "zero"       # quarter, half, zero
+params_TI["B_x"]      = 0.5/(W_y*H_z)  # half flux is 0.5/(W_y*H_z)
+flux = "half"       # quarter, half, zero
 
 
 time_start = time.time()
@@ -20,11 +20,11 @@ for i, mu in enumerate(mus):
     
     for j, s in enumerate(Smags):
         params_TI['S_mag'] = s
-        result = scattering_matrix(systf1, params_TI, calibration=None)
+        smat_e = scattering_matrix(systf1, params_TI, calibration=None)[0]
         
-        smat_e = np.array(pd.DataFrame(result[0]))
+        #smat_e = np.array(pd.DataFrame(result[0]))
         
-        path = path_generator.generate_path(["Data","Antisymmetric_Scattering_Matrices",f"Scattering_Matrices_{params_TI['mu_lead1']}_flux_{flux}"],f"mu_bulk_{params_TI['mu_bulk']}_S_mag_{params_TI['S_mag']}","txt")
+        path = path_generator.generate_path(["Data","Antisymmetric_Scattering_Matrices",f"Scattering_Matrices2_{params_TI['mu_lead1']}_flux_{flux}"],f"mu_bulk_{params_TI['mu_bulk']}_S_mag_{params_TI['S_mag']}","txt")
         np.savetxt(fname =path, X = smat_e)
         
         time_current = time.time()
@@ -41,7 +41,7 @@ Smags = np.linspace(0, 0.05, 51)
 all_max_diff = []
 params_TI['mu_lead1'] = 0.042
 params_TI['mu_lead2'] = 0.042
-flux = "quarter" # quarter, half
+flux = "zero" # quarter, half
 
 computing_error = 1e-12
 
