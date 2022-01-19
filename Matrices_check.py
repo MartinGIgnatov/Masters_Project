@@ -14,7 +14,7 @@ mu_lead = 0.02
 
 params_TI['mu_lead1'] = mu_lead
 params_TI['mu_lead2'] = mu_lead
-params_TI["B_x"]      = 0   # half flux is 0.5/(W_y*H_z)
+params_TI["B_x"]      = 0.5/(W_y*H_z)   # half flux is 0.5/(W_y*H_z)
 flux = "zero"       # quarter, half, zero
 
 
@@ -36,6 +36,37 @@ for i, mu in enumerate(mus):
         time_left = (time_current - time_start)/percentage - (time_current - time_start) 
         print("Time elapsed : ", "{:.1f}".format(time_current - time_start), "Time remaining : ", "{:.1f}".format(time_left), "Percentage : ", "{:.3f}".format(percentage*100))
         
+
+#%%
+# Plotting specific points from spectrum that are anomalous
+
+mu_lead = 0.02
+
+params_TI['mu_lead1'] = mu_lead
+params_TI['mu_lead2'] = mu_lead
+params_TI["B_x"]      = (0.5)/(W_y*H_z)   # half flux is 0.5/(W_y*H_z)
+flux = "half"        # quarter, half, zero
+channel = "single" if mu_lead == 0.02 else "multi"
+plot = "diag"
+
+params_TI['S_mag'] = 0.043
+mismatch = -0.04
+
+params_TI['mu_bulk'] = mu_lead + mismatch
+
+
+#smat_e = scattering_matrix(systf1, params_TI, calibration=None)[0]
+
+phases = np.linspace(0,2,21)
+plot_ABS_spectrum_calibrated(systf1, params_TI, phases = phases)
+
+plt.title(f"{channel}_flux={flux}_{plot}_S_mag={params_TI['S_mag']}_mismatch={mismatch}")
+
+path = path_generator.generate_path("Images",f"SpecificPoints_{channel}_flux={flux}_{plot}_S_mag={params_TI['S_mag']}_mismatch={mismatch}","png")
+
+plt.savefig(path) 
+
+
         
 #%%
 
@@ -147,6 +178,7 @@ fig.colorbar(im, cax=cax)
 path = path_generator.generate_path("Images",f"Diff_asym_scattering_mu_lead_{mu_lead}_flux_{flux}","png")
 
 plt.savefig(path) 
+
 
 #%%
 ##############################################################################
