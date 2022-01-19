@@ -215,7 +215,7 @@ all_max_diff_diagonal    = []
 all_max_diff_reflection   = []
 all_max_diff_transmission = []
 
-mu_lead = 0.02        #0.02 0.042
+mu_lead = 0.042        #0.02 0.042
 params_TI['mu_lead1'] = mu_lead
 params_TI['mu_lead2'] = mu_lead
 flux = "half" # quarter, half, zero
@@ -307,7 +307,7 @@ np.savetxt(fname =path, X = np.array(all_max_diff_transmission))
 
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-mu_lead = 0.02
+mu_lead = 0.042
 flux = "half"
 
 mus = np.linspace(-0.05, 0.2, 51)
@@ -340,7 +340,7 @@ ax.set_ylabel('Bulk potential mismatch (eV)')
 div = make_axes_locatable(ax)
 cax = div.append_axes('right', '5%', '5%')
 ax.set_title(f'Abs Diff mu_lead = {mu_lead} flux = {flux} diagonal')
-im = ax.imshow(all_max_diff_diagonal,extent = (min(Smags), max(Smags), min(mus), max(mus)),vmin = 0, vmax = np.max(all_max_diff) ,origin='lower', aspect='auto')
+im = ax.imshow(all_max_diff_diagonal,extent = (min(Smags), max(Smags), min(mus), max(mus)),vmin = 0, vmax = np.max(all_max_diff_diagonal) ,origin='lower', aspect='auto')
 fig.colorbar(im, cax=cax)
 path = path_generator.generate_path("Images",f"Diff_asym_scattering_mu_lead_{mu_lead}_flux_{flux}_diagonal","png")
 plt.savefig(path) 
