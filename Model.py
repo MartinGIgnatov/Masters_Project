@@ -392,7 +392,7 @@ def scattering_matrix(syst, p, calibration=None):
     
     smat_h_copy = np.array(list(smat_h))
     
-    i = 0
+    i = 0          # holes have different sorting order
     for a in smat_h:
         j = 0
         for b in smat_h[0]:
