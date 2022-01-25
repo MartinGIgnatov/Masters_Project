@@ -10,13 +10,15 @@ from Model import *
 mus =  np.linspace(-0.05, 0.2, 51)
 Smags =  np.linspace(0, 0.05, 51)
 
-mu_lead = 0.02
+mu_lead = 0.042    # 0.02, 0.042
 
 params_TI['mu_lead1'] = mu_lead
 params_TI['mu_lead2'] = mu_lead
-params_TI["B_x"]      = 0.5/(W_y*H_z)   # half flux is 0.5/(W_y*H_z)
-flux = "zero"       # quarter, half, zero
 
+params_TI["B_x"]      = 0.501/(W_y*H_z)   # half flux is 0.5/(W_y*H_z)
+flux = "501"       # quarter, half, zero
+
+#mus = mus[int(len(mus)*0.92):] 
 
 time_start = time.time()
 
@@ -78,9 +80,10 @@ plt.savefig(path)
 mus = np.linspace(-0.05, 0.2, 51)
 Smags = np.linspace(0, 0.05, 51)
 all_max_diff = []
-params_TI['mu_lead1'] = 0.02
-params_TI['mu_lead2'] = 0.02
-flux = "half" # quarter, half
+mu_lead = 0.042
+params_TI['mu_lead1'] = mu_lead
+params_TI['mu_lead2'] = mu_lead
+flux = "501" # quarter, half
 
 computing_error = 1e-12
 
@@ -88,7 +91,7 @@ time_start = time.time()
 
 for i, mu in enumerate(mus):
     abs_diff = []
-    params_TI['mu_bulk'] = 0.02 + mu
+    params_TI['mu_bulk'] = mu_lead + mu
     
     for j, s in enumerate(Smags):
         params_TI['S_mag'] = s
@@ -154,8 +157,8 @@ np.savetxt(fname =path, X = np.array(all_max_diff))
 
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-mu_lead = 0.02
-flux = "half"
+mu_lead = 0.042
+flux = "501"
 
 mus = np.linspace(-0.05, 0.2, 51)
 Smags = np.linspace(0, 0.05, 51)
@@ -184,22 +187,84 @@ plt.savefig(path)
 ##############################################################################
 ########             Check tables
 ##############################################################################
-        
-mu_lead = 0.042
-flux = "half" # quarter, half
 
-mus = np.linspace(-0.05, 0.2, 51) + 0.042
+def get_closest_index(val, list_data):
+    index = 0
+    diff = 1000
+    for i in range(len(list_data)):
+        if abs(val - list_data[i]) < diff:
+            diff = abs(val - list_data[i])
+            index = i
+    return index
+
+
+def rearange_matrix(matrix):
+    if (matrix.shape[0]/2)%2 == 0:
+        for i in range(0, matrix.shape[0], 2):
+            buf = matrix[i].copy()
+            matrix[i] = matrix[i+1].copy()
+            matrix[i+1] = buf
+    elif (matrix.shape[0]/2)%2 == 1:
+        for i in range(1, matrix.shape[0]/2, 2):
+            buf = matrix[i].copy()
+            matrix[i] = matrix[i+1].copy()
+            matrix[i+1] = buf
+        for i in range(matrix.shape[0]/2 + 1, matrix.shape[0], 2):
+            buf = matrix[i].copy()
+            matrix[i] = matrix[i+1].copy()
+            matrix[i+1] = buf
+    else:
+        raise Exception("No no")
+    return matrix
+        
+        
+def check_probabilities(matrix):
+    buf = np.abs(matrix)**2
+    df = pd.DataFrame(buf)
+    display(df)
+
+
+mu_lead = 0.042
+flux = "zero" # quarter, half
+flux_2 = "001"
+
+mus = np.linspace(-0.05, 0.2, 51) + mu_lead
 Smags = np.linspace(0, 0.05, 51)
 
-mu = mus[-1]
-smag = Smags[-1]
-
+mu = mus[get_closest_index( 0.155 + mu_lead, mus)]
+smag = Smags[get_closest_index( 0 , Smags)]
+print(mu, smag)
 path = path_generator.generate_path(["Data","Antisymmetric_Scattering_Matrices",f"Scattering_Matrices_{mu_lead}_flux_{flux}"],f"mu_bulk_{mu}_S_mag_{smag}","txt")
 smat_e = np.loadtxt(fname = path,dtype=complex, converters={0: lambda s: complex(s.decode().replace('+-', '-'))})
+
+params_TI['mu_lead1'] = mu_lead
+params_TI['mu_lead2'] = mu_lead
+
+params_TI["B_x"]      = 0.501/(W_y*H_z)   # half flux is 0.5/(W_y*H_z)
+flux = "501"       # quarter, half, zero
+
+params_TI['mu_bulk'] = mu
+params_TI['S_mag'] = smag
+
+smat_e = scattering_matrix(systf1, params_TI)[0]
 
 df = pd.DataFrame(smat_e)
 display(df)
 
+rearange_matrix(smat_e)
+df = pd.DataFrame(smat_e)
+display(df)
+check_probabilities(smat_e)
+
+
+
+"""
+path = path_generator.generate_path(["Data","Antisymmetric_Scattering_Matrices",f"Scattering_Matrices_{mu_lead}_flux_{flux_2}"],f"mu_bulk_{mu}_S_mag_{smag}","txt")
+smat_e = np.loadtxt(fname = path,dtype=complex, converters={0: lambda s: complex(s.decode().replace('+-', '-'))})
+
+df = pd.DataFrame(smat_e)
+display(df)
+#"""
 
 #%%
 
@@ -215,10 +280,10 @@ all_max_diff_diagonal    = []
 all_max_diff_reflection   = []
 all_max_diff_transmission = []
 
-mu_lead = 0.042        #0.02 0.042
+mu_lead = 0.02        #0.02 0.042
 params_TI['mu_lead1'] = mu_lead
 params_TI['mu_lead2'] = mu_lead
-flux = "half" # quarter, half, zero
+flux = "501" # quarter, half, zero
 
 computing_error = 1e-12
 
@@ -308,7 +373,7 @@ np.savetxt(fname =path, X = np.array(all_max_diff_transmission))
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 mu_lead = 0.042
-flux = "half"
+flux = "001"
 
 mus = np.linspace(-0.05, 0.2, 51)
 Smags = np.linspace(0, 0.05, 51)
@@ -320,7 +385,7 @@ all_max_diff_diagonal = np.loadtxt(path)
 path = path_generator.generate_path("Data",f"Diff_asym_scattering_mu_lead_{params_TI['mu_lead1']}_flux_{flux}_reflection","txt")
 all_max_diff_reflection = np.loadtxt(path)
 path = path_generator.generate_path("Data",f"Diff_asym_scattering_mu_lead_{params_TI['mu_lead1']}_flux_{flux}_transmission","txt")
-all_max_diff_transmission = np.loadtxt(path)
+all_max_diff_transmission = np.loadtxt(path)    
 
 fig, ax = plt.subplots()
 ax.set_xlabel('Correlated disorder strength (eV)')

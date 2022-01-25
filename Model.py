@@ -365,7 +365,7 @@ params_TI_sim = dict(A_perp=3.0,
 #      ANDREEV SPECTRUM, FUNCTIONS
 
 
-def scattering_matrix(syst, p, calibration=None):
+def scattering_matrix(syst, p, calibration=None, reorder = True):
     smat = kwant.smatrix(syst, params=p)
     #print(smat.submatrix(0, 0))
     #print(smat.submatrix(1, 1))
@@ -407,7 +407,18 @@ def scattering_matrix(syst, p, calibration=None):
             smat_h[new_i][new_j] = smat_h_copy[i][j]
             j+=1
         i+=1
-
+    
+    if reorder:
+        for i in range(size_L%2, size_L, 2):
+            buf = smat_e[i].copy()
+            smat_e[i] = smat_e[i+1].copy()
+            smat_e[i+1] = buf
+        for i in range(size_R%2 + size_L, size_R + size_L, 2):
+            buf = smat_e[i].copy()
+            smat_e[i] = smat_e[i+1].copy()
+            smat_e[i+1] = buf
+    
+    
     if calibration is None:
         calibration_e = np.identity(size_L+size_R, dtype=complex)
 
