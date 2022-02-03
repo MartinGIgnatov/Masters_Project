@@ -15,10 +15,10 @@ mu_lead = 0.042    # 0.02, 0.042
 params_TI['mu_lead1'] = mu_lead
 params_TI['mu_lead2'] = mu_lead
 
-params_TI["B_x"]      = 0.501/(W_y*H_z)   # half flux is 0.5/(W_y*H_z)
-flux = "501"       # quarter, half, zero
+params_TI["B_x"]      = 0.001/(W_y*H_z)   # half flux is 0.5/(W_y*H_z)
+flux = "001"       # quarter, half, zero
 
-#mus = mus[int(len(mus)*0.92):] 
+mus = mus[int(len(mus)*0.96):] 
 
 time_start = time.time()
 
@@ -30,7 +30,7 @@ for i, mu in enumerate(mus):
 
         smat_e = scattering_matrix(systf1, params_TI, calibration=None)[0]
         
-        path = path_generator.generate_path(["Data","Antisymmetric_Scattering_Matrices",f"Scattering_Matrices_{params_TI['mu_lead1']}_flux_{flux}"],f"mu_bulk_{params_TI['mu_bulk']}_S_mag_{params_TI['S_mag']}","txt")
+        path = path_generator.generate_path(["Data","Antisymmetric_Scattering_Matrices",f"Scattering_Matrices_{params_TI['mu_lead1']}_flux_{flux}_reorder"],f"mu_bulk_{params_TI['mu_bulk']}_S_mag_{params_TI['S_mag']}","txt")
         np.savetxt(fname =path, X = smat_e)
         
         time_current = time.time()
@@ -197,27 +197,6 @@ def get_closest_index(val, list_data):
             index = i
     return index
 
-
-def rearange_matrix(matrix):
-    if (matrix.shape[0]/2)%2 == 0:
-        for i in range(0, matrix.shape[0], 2):
-            buf = matrix[i].copy()
-            matrix[i] = matrix[i+1].copy()
-            matrix[i+1] = buf
-    elif (matrix.shape[0]/2)%2 == 1:
-        for i in range(1, matrix.shape[0]/2, 2):
-            buf = matrix[i].copy()
-            matrix[i] = matrix[i+1].copy()
-            matrix[i+1] = buf
-        for i in range(matrix.shape[0]/2 + 1, matrix.shape[0], 2):
-            buf = matrix[i].copy()
-            matrix[i] = matrix[i+1].copy()
-            matrix[i+1] = buf
-    else:
-        raise Exception("No no")
-    return matrix
-        
-        
 def check_probabilities(matrix):
     buf = np.abs(matrix)**2
     df = pd.DataFrame(buf)
@@ -225,46 +204,47 @@ def check_probabilities(matrix):
 
 
 mu_lead = 0.042
-flux = "zero" # quarter, half
-flux_2 = "001"
+flux = "001" # quarter, half, zero
 
-mus = np.linspace(-0.05, 0.2, 51) + mu_lead
+mus = np.linspace(-0.05, 0.2, 51)
 Smags = np.linspace(0, 0.05, 51)
 
-mu = mus[get_closest_index( 0.155 + mu_lead, mus)]
+# 0.155 0, 0.1  0.05
+
+mu_bulk = mus[get_closest_index( 0.025, mus)] + mu_lead
 smag = Smags[get_closest_index( 0 , Smags)]
-print(mu, smag)
-path = path_generator.generate_path(["Data","Antisymmetric_Scattering_Matrices",f"Scattering_Matrices_{mu_lead}_flux_{flux}"],f"mu_bulk_{mu}_S_mag_{smag}","txt")
-smat_e = np.loadtxt(fname = path,dtype=complex, converters={0: lambda s: complex(s.decode().replace('+-', '-'))})
+print(mu_bulk - mu_lead, smag)
+path = path_generator.generate_path(["Data","Antisymmetric_Scattering_Matrices",f"Scattering_Matrices_{mu_lead}_flux_{flux}"],f"mu_bulk_{mu_bulk}_S_mag_{smag}","txt")
+smat_e_old = np.loadtxt(fname = path,dtype=complex, converters={0: lambda s: complex(s.decode().replace('+-', '-'))})
 
 params_TI['mu_lead1'] = mu_lead
 params_TI['mu_lead2'] = mu_lead
+params_TI["B_x"]      = 0.001/(W_y*H_z)   # half flux is 0.5/(W_y*H_z)     
+params_TI['mu_bulk']  = mu_bulk
+params_TI['S_mag']    = smag
 
-params_TI["B_x"]      = 0.501/(W_y*H_z)   # half flux is 0.5/(W_y*H_z)
-flux = "501"       # quarter, half, zero
+smat_e_new = scattering_matrix(systf1, params_TI)[0]
 
-params_TI['mu_bulk'] = mu
-params_TI['S_mag'] = smag
-
-smat_e = scattering_matrix(systf1, params_TI)[0]
-
-df = pd.DataFrame(smat_e)
+print("Original")
+df = pd.DataFrame(smat_e_new)
+display(df)
+print("Original ABS")
+df = pd.DataFrame(np.absolute(smat_e_new))
+display(df)
+print("angle")
+df = pd.DataFrame(np.angle(smat_e_new)/np.pi)
+display(df)
+print("Added to T")
+df = pd.DataFrame(smat_e_new + smat_e_new.T)
+display(df)
+print("Subtracted from T")
+df = pd.DataFrame(smat_e_new - smat_e_new.T)
+display(df)
+print("ABSolutes, Subtracted from T")
+df = pd.DataFrame(np.abs(smat_e_new) - np.abs(smat_e_new.T))
 display(df)
 
-rearange_matrix(smat_e)
-df = pd.DataFrame(smat_e)
-display(df)
-check_probabilities(smat_e)
 
-
-
-"""
-path = path_generator.generate_path(["Data","Antisymmetric_Scattering_Matrices",f"Scattering_Matrices_{mu_lead}_flux_{flux_2}"],f"mu_bulk_{mu}_S_mag_{smag}","txt")
-smat_e = np.loadtxt(fname = path,dtype=complex, converters={0: lambda s: complex(s.decode().replace('+-', '-'))})
-
-df = pd.DataFrame(smat_e)
-display(df)
-#"""
 
 #%%
 
@@ -280,10 +260,10 @@ all_max_diff_diagonal    = []
 all_max_diff_reflection   = []
 all_max_diff_transmission = []
 
-mu_lead = 0.02        #0.02 0.042
+mu_lead = 0.042        #0.02 0.042
 params_TI['mu_lead1'] = mu_lead
 params_TI['mu_lead2'] = mu_lead
-flux = "501" # quarter, half, zero
+flux = "001" # quarter, half, zero
 
 computing_error = 1e-12
 
@@ -301,7 +281,7 @@ for i, mu in enumerate(mus):
         params_TI['S_mag'] = s
         
         try:
-            path = path_generator.generate_path(["Data","Antisymmetric_Scattering_Matrices",f"Scattering_Matrices_{params_TI['mu_lead1']}_flux_{flux}"],f"mu_bulk_{params_TI['mu_bulk']}_S_mag_{params_TI['S_mag']}","txt")
+            path = path_generator.generate_path(["Data","Antisymmetric_Scattering_Matrices",f"Scattering_Matrices_{params_TI['mu_lead1']}_flux_{flux}_reorder"],f"mu_bulk_{params_TI['mu_bulk']}_S_mag_{params_TI['S_mag']}","txt")
             smat_e = np.loadtxt(fname = path,dtype=complex, converters={0: lambda s: complex(s.decode().replace('+-', '-'))})
         except:
             print(mu, s)
@@ -310,7 +290,6 @@ for i, mu in enumerate(mus):
         smat_e_T = np.transpose(smat_e)
         
         
-        #"""
         abs_smat_e = np.absolute(smat_e)
         abs_smat_e_T = np.transpose(abs_smat_e)
         Average = (abs_smat_e + abs_smat_e_T)/2
