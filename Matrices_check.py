@@ -225,38 +225,38 @@ def check_probabilities(matrix):
 
 
 mu_lead = 0.042
-flux = "zero" # quarter, half
+flux = "half" # quarter, half
 flux_2 = "001"
 
 mus = np.linspace(-0.05, 0.2, 51) + mu_lead
 Smags = np.linspace(0, 0.05, 51)
 
-mu = mus[get_closest_index( 0.155 + mu_lead, mus)]
-smag = Smags[get_closest_index( 0 , Smags)]
+# Gets the closest value of s_mag and mu in the matrices we have generated
+mu = mus[get_closest_index(0.01 + mu_lead, mus)]
+smag = Smags[get_closest_index(0 , Smags)]
+
 print(mu, smag)
 path = path_generator.generate_path(["Data","Antisymmetric_Scattering_Matrices",f"Scattering_Matrices_{mu_lead}_flux_{flux}"],f"mu_bulk_{mu}_S_mag_{smag}","txt")
-smat_e = np.loadtxt(fname = path,dtype=complex, converters={0: lambda s: complex(s.decode().replace('+-', '-'))})
+smat_e_old = np.loadtxt(fname = path,dtype=complex, converters={0: lambda s: complex(s.decode().replace('+-', '-'))})
 
+
+params_TI["B_x"]      = 0.001/(W_y*H_z)   # half flux is 0.5/(W_y*H_z)
+flux = "501"       # quarter, half, zero
 params_TI['mu_lead1'] = mu_lead
 params_TI['mu_lead2'] = mu_lead
-
-params_TI["B_x"]      = 0.501/(W_y*H_z)   # half flux is 0.5/(W_y*H_z)
-flux = "501"       # quarter, half, zero
-
 params_TI['mu_bulk'] = mu
 params_TI['S_mag'] = smag
 
-smat_e = scattering_matrix(systf1, params_TI)[0]
+smat_e_new = scattering_matrix(systf1, params_TI)[0]
 
-df = pd.DataFrame(smat_e)
+check_probabilities(smat_e_old)
+check_probabilities(smat_e_new)
+
+df = pd.DataFrame(smat_e_new + smat_e_new.T)
 display(df)
 
-rearange_matrix(smat_e)
-df = pd.DataFrame(smat_e)
-display(df)
-check_probabilities(smat_e)
-
-
+df2 = pd.DataFrame(smat_e_new)
+display(df2)
 
 """
 path = path_generator.generate_path(["Data","Antisymmetric_Scattering_Matrices",f"Scattering_Matrices_{mu_lead}_flux_{flux_2}"],f"mu_bulk_{mu}_S_mag_{smag}","txt")

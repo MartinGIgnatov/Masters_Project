@@ -57,7 +57,7 @@ def plot_bands(syst, momenta, return_bands=False, plot_bands=True, params=None, 
         return energies
     
 flux = '0 - perturbed001'
-params_TI["B_x"]     = (5.1)/(W_y*H_z)
+params_TI["B_x"]     = 0/(W_y*H_z)
 params_TI['mu_bulk'] = 0.02
 params_TI['mu_lead1'] = 0.042
 params_TI['mu_lead2'] = 0.042
