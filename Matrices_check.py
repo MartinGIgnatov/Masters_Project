@@ -223,11 +223,14 @@ params_TI["B_x"]      = 0.001/(W_y*H_z)   # half flux is 0.5/(W_y*H_z)
 params_TI['mu_bulk']  = mu_bulk
 params_TI['S_mag']    = smag
 
+
 smat_e_new = scattering_matrix(systf1, params_TI)[0]
 
 print("Original")
 df = pd.DataFrame(smat_e_new)
 display(df)
+
+
 print("Original ABS")
 df = pd.DataFrame(np.absolute(smat_e_new))
 display(df)
@@ -237,16 +240,21 @@ display(df)
 print("Added to T")
 df = pd.DataFrame(smat_e_new + smat_e_new.T)
 display(df)
+
+
+'''
 print("Subtracted from T")
 df = pd.DataFrame(smat_e_new - smat_e_new.T)
 display(df)
+
 print("ABSolutes, Subtracted from T")
 df = pd.DataFrame(np.abs(smat_e_new) - np.abs(smat_e_new.T))
 display(df)
 
+
 df2 = pd.DataFrame(smat_e_new)
 display(df2)
-
+'''
 
 #%%
 

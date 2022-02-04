@@ -364,11 +364,11 @@ params_TI_sim = dict(A_perp=3.0,
 ###################################
 #      ANDREEV SPECTRUM, FUNCTIONS
 
-def check_probsymm(matrix, comp_error = 1e-6):
+def check_probsymm(matrix, comp_error = 1e-3):
     prob_mat = np.abs(matrix) ** 2
     diff = prob_mat - prob_mat.T
     
-    if np.amax(diff) > comp_error:
+    if abs(np.amax(diff)) > comp_error:
         print(diff)
         raise Exception('Probability matrix is not symmetric')
     
@@ -423,9 +423,9 @@ def scattering_matrix(syst, p, calibration=None, reorder = True):
             smat_e[i+1] = buf
             
         for i in range(size_R%2 + size_L, size_R + size_L, 2):
-            buf = smat_e[:][i].copy()
-            smat_e[:][i] = smat_e[:][i+1].copy()
-            smat_e[:][i+1] = buf
+            buf = smat_e[:,i].copy()
+            smat_e[:,i] = smat_e[:,i+1].copy()
+            smat_e[:,i+1] = buf
             
     
     check_probsymm(smat_e)
@@ -443,8 +443,8 @@ def scattering_matrix(syst, p, calibration=None, reorder = True):
                     calibration_e[i][i] = np.exp(1j*shift_e/2)
                     check = False
                     break
-            if check:
-                raise Exception(f"Cant find element for calibration on {i}th row. Matrix.\n", smat_e)
+           # if check:
+            #    raise Exception(f"Cant find element for calibration on {i}th row. Matrix.\n", smat_e)
     else:
         print('same calibration!')
         calibration_e = calibration
