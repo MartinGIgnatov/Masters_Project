@@ -244,6 +244,8 @@ print("ABSolutes, Subtracted from T")
 df = pd.DataFrame(np.abs(smat_e_new) - np.abs(smat_e_new.T))
 display(df)
 
+df2 = pd.DataFrame(smat_e_new)
+display(df2)
 
 
 #%%

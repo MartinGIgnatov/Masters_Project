@@ -364,6 +364,14 @@ params_TI_sim = dict(A_perp=3.0,
 ###################################
 #      ANDREEV SPECTRUM, FUNCTIONS
 
+def check_probsymm(matrix, comp_error = 1e-6):
+    prob_mat = np.abs(matrix) ** 2
+    diff = prob_mat - prob_mat.T
+    
+    if np.amax(diff) > comp_error:
+        print(diff)
+        raise Exception('Probability matrix is not symmetric')
+    
 
 def scattering_matrix(syst, p, calibration=None, reorder = True):
     smat = kwant.smatrix(syst, params=p)
@@ -413,10 +421,11 @@ def scattering_matrix(syst, p, calibration=None, reorder = True):
             buf = smat_e[i].copy()
             smat_e[i] = smat_e[i+1].copy()
             smat_e[i+1] = buf
+            
         for i in range(size_R%2 + size_L, size_R + size_L, 2):
-            buf = smat_e[i].copy()
-            smat_e[i] = smat_e[i+1].copy()
-            smat_e[i+1] = buf
+            buf = smat_e[:][i].copy()
+            smat_e[:][i] = smat_e[:][i+1].copy()
+            smat_e[:][i+1] = buf
     
     #"""
     if calibration is None:
@@ -425,11 +434,13 @@ def scattering_matrix(syst, p, calibration=None, reorder = True):
     ## Assuming the left lead and the right lead have the same dimensions (same number of propagating modes)
     ## Calibrate the phase shift        
         for i in range(0, size_L):
-            shift_e = np.angle(smat_e[i][i+size_L]) - np.angle(smat_e[i+size_L][i]) # - np.pi ## This generates the antisymmetry (fermions)
+            
+            shift_e = np.angle(smat_e[i][i+size_L]) - np.angle(smat_e[i+size_L][i]) - np.pi ## This generates the antisymmetry (fermions)
             calibration_e[i+size_L][i+size_L] = np.exp(1j*shift_e/2)
     else:
         print('same calibration!')
         calibration_e = calibration
+    
     
     smat_e = calibration_e@smat_e@calibration_e.conj()
     #"""
@@ -450,6 +461,7 @@ def energies_over_delta_calibrated(smat_e, size_L, size_R, phases=np.zeros(nlead
         #print(smat_prod)
     
     operator = 0.5 * np.eye(smat_prod.shape[0]) + 0.25 * (smat_prod + smat_prod.T.conj())
+    
     return np.sqrt(np.linalg.eigvalsh(operator))
 
 
