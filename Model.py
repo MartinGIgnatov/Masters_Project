@@ -426,17 +426,25 @@ def scattering_matrix(syst, p, calibration=None, reorder = True):
             buf = smat_e[:][i].copy()
             smat_e[:][i] = smat_e[:][i+1].copy()
             smat_e[:][i+1] = buf
+            
     
+    check_probsymm(smat_e)
     #"""
     if calibration is None:
         calibration_e = np.identity(size_L+size_R, dtype=complex)
 
     ## Assuming the left lead and the right lead have the same dimensions (same number of propagating modes)
     ## Calibrate the phase shift        
-        for i in range(0, size_L):
-            
-            shift_e = np.angle(smat_e[i][i+size_L]) - np.angle(smat_e[i+size_L][i]) - np.pi ## This generates the antisymmetry (fermions)
-            calibration_e[i+size_L][i+size_L] = np.exp(1j*shift_e/2)
+        for i in range(1, size_L + size_R):
+            check = True
+            for j in range(i):
+                if np.abs(smat_e[i][j]) > 1e-6:
+                    shift_e = np.angle(smat_e[j][i]) - np.angle(smat_e[i][j]) - np.pi ## This generates the antisymmetry (fermions)
+                    calibration_e[i][i] = np.exp(1j*shift_e/2)
+                    check = False
+                    break
+            if check:
+                raise Exception(f"Cant find element for calibration on {i}th row. Matrix.\n", smat_e)
     else:
         print('same calibration!')
         calibration_e = calibration
