@@ -213,7 +213,7 @@ Smags = np.linspace(0, 0.05, 51)
 
 mu_bulk = mus[get_closest_index( 0.025, mus)] + mu_lead
 smag = Smags[get_closest_index( 0 , Smags)]
-print(mu_bulk - mu_lead, smag)
+
 path = path_generator.generate_path(["Data","Antisymmetric_Scattering_Matrices",f"Scattering_Matrices_{mu_lead}_flux_{flux}"],f"mu_bulk_{mu_bulk}_S_mag_{smag}","txt")
 smat_e_old = np.loadtxt(fname = path,dtype=complex, converters={0: lambda s: complex(s.decode().replace('+-', '-'))})
 
@@ -230,7 +230,6 @@ print("Original")
 df = pd.DataFrame(smat_e_new)
 display(df)
 
-
 print("Original ABS")
 df = pd.DataFrame(np.absolute(smat_e_new))
 display(df)
@@ -241,8 +240,6 @@ print("Added to T")
 df = pd.DataFrame(smat_e_new + smat_e_new.T)
 display(df)
 
-
-'''
 print("Subtracted from T")
 df = pd.DataFrame(smat_e_new - smat_e_new.T)
 display(df)
@@ -251,12 +248,14 @@ print("ABSolutes, Subtracted from T")
 df = pd.DataFrame(np.abs(smat_e_new) - np.abs(smat_e_new.T))
 display(df)
 
+'''
 
 df2 = pd.DataFrame(smat_e_new)
 display(df2)
 '''
 
-#%%
+
+#%%            
 
 ##############################################################################
 ########             Time reversal check data save, transmission and reflection
