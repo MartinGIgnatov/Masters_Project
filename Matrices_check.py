@@ -15,10 +15,10 @@ mu_lead = 0.042    # 0.02, 0.042
 params_TI['mu_lead1'] = mu_lead
 params_TI['mu_lead2'] = mu_lead
 
-params_TI["B_x"]      = 0.001/(W_y*H_z)   # half flux is 0.5/(W_y*H_z)
-flux = "001"       # quarter, half, zero
+params_TI["B_x"]      = 0.000001/(W_y*H_z)   # half flux is 0.5/(W_y*H_z)
+flux = "000001"       # quarter, half, zero
 
-mus = mus[int(len(mus)*0.96):] 
+mus = mus[int(len(mus)*0.71):] 
 
 time_start = time.time()
 
@@ -83,7 +83,7 @@ all_max_diff = []
 mu_lead = 0.042
 params_TI['mu_lead1'] = mu_lead
 params_TI['mu_lead2'] = mu_lead
-flux = "501" # quarter, half
+flux = "0000001" # quarter, half
 
 computing_error = 1e-12
 
@@ -204,27 +204,27 @@ def check_probabilities(matrix):
 
 
 mu_lead = 0.042
-flux = "001" # quarter, half, zero
+flux = "000001" # quarter, half, zero
 
 mus = np.linspace(-0.05, 0.2, 51)
 Smags = np.linspace(0, 0.05, 51)
 
 # 0.155 0, 0.1  0.05
 
-mu_bulk = mus[get_closest_index( 0.025, mus)] + mu_lead
-smag = Smags[get_closest_index( 0 , Smags)]
-
-path = path_generator.generate_path(["Data","Antisymmetric_Scattering_Matrices",f"Scattering_Matrices_{mu_lead}_flux_{flux}"],f"mu_bulk_{mu_bulk}_S_mag_{smag}","txt")
-smat_e_old = np.loadtxt(fname = path,dtype=complex, converters={0: lambda s: complex(s.decode().replace('+-', '-'))})
+mu_bulk = mus[-5] + mu_lead # mus[get_closest_index( 0.170, mus)] + mu_lead
+smag = Smags[27] #   Smags[get_closest_index( 0.001 , Smags)]
+print(mu_bulk - mu_lead, smag)
 
 params_TI['mu_lead1'] = mu_lead
 params_TI['mu_lead2'] = mu_lead
-params_TI["B_x"]      = 0.001/(W_y*H_z)   # half flux is 0.5/(W_y*H_z)     
+params_TI["B_x"]      = 0.000001/(W_y*H_z)   # half flux is 0.5/(W_y*H_z)     
 params_TI['mu_bulk']  = mu_bulk
 params_TI['S_mag']    = smag
 
-
-smat_e_new = scattering_matrix(systf1, params_TI)[0]
+smat_e_new = scattering_matrix(systf1, params_TI)[0] #, calibration = np.identity(4))[0]
+smat_e_old = scattering_matrix(systf1, params_TI, calibration = np.identity(4))[0]
+path = path_generator.generate_path(["Data","Antisymmetric_Scattering_Matrices",f"Scattering_Matrices_{mu_lead}_flux_{flux}_reorder"],f"mu_bulk_{params_TI['mu_bulk']}_S_mag_{params_TI['S_mag']}","txt")
+smat_e = np.loadtxt(fname = path,dtype=complex, converters={0: lambda s: complex(s.decode().replace('+-', '-'))})
 
 print("Original")
 df = pd.DataFrame(smat_e_new)
@@ -233,27 +233,28 @@ display(df)
 print("Original ABS")
 df = pd.DataFrame(np.absolute(smat_e_new))
 display(df)
-print("angle")
+print("angle old")
+df = pd.DataFrame(np.angle(smat_e_old)/np.pi)
+display(df)
+print("angle new")
 df = pd.DataFrame(np.angle(smat_e_new)/np.pi)
 display(df)
+
+print("Added to T\n", abs(smat_e_new + smat_e_new.T))
+print("Saved matrix Added to T\n", abs(smat_e + smat_e.T))
+"""
 print("Added to T")
 df = pd.DataFrame(smat_e_new + smat_e_new.T)
 display(df)
 
 print("Subtracted from T")
 df = pd.DataFrame(smat_e_new - smat_e_new.T)
-display(df)
-
+#display(df)
 print("ABSolutes, Subtracted from T")
 df = pd.DataFrame(np.abs(smat_e_new) - np.abs(smat_e_new.T))
-display(df)
+#display(df)
 
-'''
-
-df2 = pd.DataFrame(smat_e_new)
-display(df2)
-'''
-
+#"""
 
 #%%            
 
@@ -272,7 +273,7 @@ all_max_diff_transmission = []
 mu_lead = 0.042        #0.02 0.042
 params_TI['mu_lead1'] = mu_lead
 params_TI['mu_lead2'] = mu_lead
-flux = "001" # quarter, half, zero
+flux = "000001" # quarter, half, zero
 
 computing_error = 1e-12
 
@@ -297,7 +298,6 @@ for i, mu in enumerate(mus):
             
         
         smat_e_T = np.transpose(smat_e)
-        
         
         abs_smat_e = np.absolute(smat_e)
         abs_smat_e_T = np.transpose(abs_smat_e)
@@ -361,7 +361,7 @@ np.savetxt(fname =path, X = np.array(all_max_diff_transmission))
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 mu_lead = 0.042
-flux = "001"
+flux = "000001"
 
 mus = np.linspace(-0.05, 0.2, 51)
 Smags = np.linspace(0, 0.05, 51)

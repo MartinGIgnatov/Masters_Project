@@ -36,7 +36,7 @@ warnings.filterwarnings("ignore", category=SymPyDeprecationWarning)
 import scipy.signal
 from scipy.stats import multivariate_normal
 
-
+import warnings
 import time
 import os
 import path_generator as path_generator
@@ -369,11 +369,21 @@ def check_probsymm(matrix, comp_error = 1e-2):
     diff = prob_mat - prob_mat.T
     print(abs(np.amax(diff)))
     
-    #if abs(np.amax(diff)) > comp_error:
-       # print(diff)
+    if np.amax(diff) > comp_error:
+        #print(diff)
+        warnings.warn("Probability matrix is not symmetric")
         #raise Exception('Probability matrix is not symmetric')
     
 
+def fix_angles(angles):
+    while np.any(angles > np.pi):
+        angles = angles - 2 * (angles > np.pi) * np.pi
+    while np.any(angles < - np.pi):
+        angles = angles + 2 * (angles < - np.pi) * np.pi
+    return angles
+
+
+        
 def scattering_matrix(syst, p, calibration=None, reorder = True):
     smat = kwant.smatrix(syst, params=p)
     #print(smat.submatrix(0, 0))
@@ -433,26 +443,31 @@ def scattering_matrix(syst, p, calibration=None, reorder = True):
     #"""
     if calibration is None:
         calibration_e = np.identity(size_L+size_R, dtype=complex)
-
-    ## Assuming the left lead and the right lead have the same dimensions (same number of propagating modes)
-    ## Calibrate the phase shift        
+        ## Assuming the left lead and the right lead have the same dimensions (same number of propagating modes)
+        ## Calibrate the phase shift        
         for i in range(1, size_L + size_R):
             check = True
             for j in range(i):
                 if np.abs(smat_e[i][j]) > 1e-6:
-                    shift_e = np.angle(smat_e[j][i]) - np.angle(smat_e[i][j]) - np.pi ## This generates the antisymmetry (fermions)
-                    calibration_e[i][i] = np.exp(1j*shift_e/2)
+                    shift_e = np.angle(smat_e[j][i]) - np.angle(smat_e[i][j]) - np.pi + np.angle(calibration_e[j][j]) ## This generates the antisymmetry (fermions)
+                    #shift_e = fix_angles(shift_e)
+                    #print("Angle: ",fix_angles(shift_e)/np.pi,"index: ",i,j)
+                    if check:
+                        calibration_e[i][i] = np.exp(1j*shift_e)
                     check = False
-                    break
-        #check_probsymm(smat_e)
-           # if check:
-            #    raise Exception(f"Cant find element for calibration on {i}th row. Matrix.\n", smat_e)
+                    #break
+            if check:
+                warnings.warn("Cant find element for calibration. Parameters are : ")
+                print(p)
+                #raise Exception(f"Cant find element for calibration on {i}th row. Matrix.\n", smat_e, "\nParameters are : ", p)
+        #print("Calibration")
+        #df = pd.DataFrame(np.angle(calibration_e)/np.pi)
+        #display(df)
     else:
-        print('same calibration!')
+        #print('same calibration!')
         calibration_e = calibration
     
-    
-    smat_e = calibration_e@smat_e@calibration_e.conj()
+    smat_e = calibration_e@smat_e
     #"""
     return [smat_e, size_L, size_R]
 
