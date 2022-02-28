@@ -18,7 +18,7 @@ params_TI['mu_lead2'] = mu_lead
 params_TI["B_x"]      = 0.000001/(W_y*H_z)   # half flux is 0.5/(W_y*H_z)
 flux = "000001"       # quarter, half, zero
 
-mus = mus[int(len(mus)*0.71):] 
+#mus = mus[int(len(mus)*0.71):] 
 
 time_start = time.time()
 
@@ -273,7 +273,7 @@ all_max_diff_transmission = []
 mu_lead = 0.042        #0.02 0.042
 params_TI['mu_lead1'] = mu_lead
 params_TI['mu_lead2'] = mu_lead
-flux = "000001" # quarter, half, zero
+flux = "half" # quarter, half, zero
 
 computing_error = 1e-12
 
@@ -291,7 +291,8 @@ for i, mu in enumerate(mus):
         params_TI['S_mag'] = s
         
         try:
-            path = path_generator.generate_path(["Data","Antisymmetric_Scattering_Matrices",f"Scattering_Matrices_{params_TI['mu_lead1']}_flux_{flux}_reorder"],f"mu_bulk_{params_TI['mu_bulk']}_S_mag_{params_TI['S_mag']}","txt")
+            #path = path_generator.generate_path(["Data","Antisymmetric_Scattering_Matrices",f"Scattering_Matrices_{params_TI['mu_lead1']}_flux_{flux}_reorder"],f"mu_bulk_{params_TI['mu_bulk']}_S_mag_{params_TI['S_mag']}","txt")
+            path = path_generator.generate_path(["Data","Symmetric_Scattering_Matrices",f"Scattering_Matrices_{params_TI['mu_lead1']}_flux_{flux}"],f"mu_bulk_{params_TI['mu_bulk']}_S_mag_{params_TI['S_mag']}","txt")
             smat_e = np.loadtxt(fname = path,dtype=complex, converters={0: lambda s: complex(s.decode().replace('+-', '-'))})
         except:
             print(mu, s)
@@ -343,14 +344,14 @@ for i, mu in enumerate(mus):
     all_max_diff_transmission.append(abs_diff_transmission)
     
     
-
-path = path_generator.generate_path("Data",f"Diff_asym_scattering_mu_lead_{params_TI['mu_lead1']}_flux_{flux}","txt")
+#######   check if the adress is asym or sym
+path = path_generator.generate_path("Data",f"Diff_sym_scattering_mu_lead_{params_TI['mu_lead1']}_flux_{flux}","txt")
 np.savetxt(fname =path, X = np.array(all_max_diff))
-path = path_generator.generate_path("Data",f"Diff_asym_scattering_mu_lead_{params_TI['mu_lead1']}_flux_{flux}_diagonal","txt")
+path = path_generator.generate_path("Data",f"Diff_sym_scattering_mu_lead_{params_TI['mu_lead1']}_flux_{flux}_diagonal","txt")
 np.savetxt(fname =path, X = np.array(all_max_diff_diagonal))
-path = path_generator.generate_path("Data",f"Diff_asym_scattering_mu_lead_{params_TI['mu_lead1']}_flux_{flux}_reflection","txt")
+path = path_generator.generate_path("Data",f"Diff_sym_scattering_mu_lead_{params_TI['mu_lead1']}_flux_{flux}_reflection","txt")
 np.savetxt(fname =path, X = np.array(all_max_diff_reflection))
-path = path_generator.generate_path("Data",f"Diff_asym_scattering_mu_lead_{params_TI['mu_lead1']}_flux_{flux}_transmission","txt")
+path = path_generator.generate_path("Data",f"Diff_sym_scattering_mu_lead_{params_TI['mu_lead1']}_flux_{flux}_transmission","txt")
 np.savetxt(fname =path, X = np.array(all_max_diff_transmission))
 
 #%%
@@ -361,19 +362,22 @@ np.savetxt(fname =path, X = np.array(all_max_diff_transmission))
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 mu_lead = 0.042
-flux = "000001"
+flux = "half"
 
 mus = np.linspace(-0.05, 0.2, 51)
 Smags = np.linspace(0, 0.05, 51)
 
-path = path_generator.generate_path("Data",f"Diff_asym_scattering_mu_lead_{mu_lead}_flux_{flux}","txt")
-all_max_diff = np.loadtxt(path)
-path = path_generator.generate_path("Data",f"Diff_asym_scattering_mu_lead_{mu_lead}_flux_{flux}_diagonal","txt")
-all_max_diff_diagonal = np.loadtxt(path)
-path = path_generator.generate_path("Data",f"Diff_asym_scattering_mu_lead_{params_TI['mu_lead1']}_flux_{flux}_reflection","txt")
-all_max_diff_reflection = np.loadtxt(path)
-path = path_generator.generate_path("Data",f"Diff_asym_scattering_mu_lead_{params_TI['mu_lead1']}_flux_{flux}_transmission","txt")
-all_max_diff_transmission = np.loadtxt(path)    
+path = path_generator.generate_path("Data",f"Diff_sym_scattering_mu_lead_{mu_lead}_flux_{flux}","txt")
+all_max_diff = np.log(np.loadtxt(path)) / np.log(10)
+path = path_generator.generate_path("Data",f"Diff_sym_scattering_mu_lead_{mu_lead}_flux_{flux}_diagonal","txt")
+all_max_diff_diagonal = np.log(np.loadtxt(path)) / np.log(10)
+path = path_generator.generate_path("Data",f"Diff_sym_scattering_mu_lead_{params_TI['mu_lead1']}_flux_{flux}_reflection","txt")
+all_max_diff_reflection = np.log(np.loadtxt(path)) / np.log(10)
+path = path_generator.generate_path("Data",f"Diff_sym_scattering_mu_lead_{params_TI['mu_lead1']}_flux_{flux}_transmission","txt")
+all_max_diff_transmission = np.log(np.loadtxt(path)) / np.log(10)  
+
+v_min = min(np.min(all_max_diff), np.min(all_max_diff_diagonal))
+v_max = max(np.max(all_max_diff), np.max(all_max_diff_diagonal))
 
 fig, ax = plt.subplots()
 ax.set_xlabel('Correlated disorder strength (eV)')
@@ -381,7 +385,7 @@ ax.set_ylabel('Bulk potential mismatch (eV)')
 div = make_axes_locatable(ax)
 cax = div.append_axes('right', '5%', '5%')
 ax.set_title(f'Abs Diff mu_lead = {mu_lead} flux = {flux}')
-im = ax.imshow(all_max_diff,extent = (min(Smags), max(Smags), min(mus), max(mus)),vmin = 0, vmax = np.max(all_max_diff) ,origin='lower', aspect='auto')
+im = ax.imshow(all_max_diff,extent = (min(Smags), max(Smags), min(mus), max(mus)),vmin = v_min, vmax = v_max ,origin='lower', aspect='auto')
 fig.colorbar(im, cax=cax)
 path = path_generator.generate_path("Images",f"Diff_asym_scattering_mu_lead_{mu_lead}_flux_{flux}","png")
 plt.savefig(path) 
@@ -393,7 +397,7 @@ ax.set_ylabel('Bulk potential mismatch (eV)')
 div = make_axes_locatable(ax)
 cax = div.append_axes('right', '5%', '5%')
 ax.set_title(f'Abs Diff mu_lead = {mu_lead} flux = {flux} diagonal')
-im = ax.imshow(all_max_diff_diagonal,extent = (min(Smags), max(Smags), min(mus), max(mus)),vmin = 0, vmax = np.max(all_max_diff_diagonal) ,origin='lower', aspect='auto')
+im = ax.imshow(all_max_diff_diagonal,extent = (min(Smags), max(Smags), min(mus), max(mus)),vmin = v_min, vmax = v_max ,origin='lower', aspect='auto')
 fig.colorbar(im, cax=cax)
 path = path_generator.generate_path("Images",f"Diff_asym_scattering_mu_lead_{mu_lead}_flux_{flux}_diagonal","png")
 plt.savefig(path) 
@@ -405,7 +409,7 @@ ax.set_ylabel('Bulk potential mismatch (eV)')
 div = make_axes_locatable(ax)
 cax = div.append_axes('right', '5%', '5%')
 ax.set_title(f'Abs Diff mu_lead = {mu_lead} flux = {flux} reflection non diagonal')
-im = ax.imshow(all_max_diff_reflection,extent = (min(Smags), max(Smags), min(mus), max(mus)),vmin = 0, vmax = np.max(all_max_diff),origin='lower', aspect='auto')
+im = ax.imshow(all_max_diff_reflection,extent = (min(Smags), max(Smags), min(mus), max(mus)),vmin = v_min, vmax = v_max, origin='lower', aspect='auto')
 fig.colorbar(im, cax=cax)
 path = path_generator.generate_path("Images",f"Diff_asym_scattering_mu_lead_{mu_lead}_flux_{flux}_reflection","png")
 plt.savefig(path) 
@@ -417,10 +421,54 @@ ax.set_ylabel('Bulk potential mismatch (eV)')
 div = make_axes_locatable(ax)
 cax = div.append_axes('right', '5%', '5%')
 ax.set_title(f'Abs Diff mu_lead = {mu_lead} flux = {flux} transmission')
-im = ax.imshow(all_max_diff_transmission,extent = (min(Smags), max(Smags), min(mus), max(mus)),vmin = 0, vmax = np.max(all_max_diff),origin='lower', aspect='auto')
+im = ax.imshow(all_max_diff_transmission,extent = (min(Smags), max(Smags), min(mus), max(mus)),vmin = v_min, vmax = v_max ,origin='lower', aspect='auto')
 fig.colorbar(im, cax=cax)
 path = path_generator.generate_path("Images",f"Diff_asym_scattering_mu_lead_{mu_lead}_flux_{flux}_transmission","png")
 plt.savefig(path) 
 plt.show()
 
+#%%
+
+#################################
+#         Present the data for poster
+
+
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+
+mu_lead = 0.042
+flux = "500001"
+flux_old = "half"
+
+mus = np.linspace(-0.05, 0.2, 51)
+Smags = np.linspace(0, 0.05, 51)
+
+path = path_generator.generate_path("Data",f"Diff_asym_scattering_mu_lead_{mu_lead}_flux_{flux}","txt")
+all_max_diff_new = np.log(np.loadtxt(path)) / np.log(10)
+path = path_generator.generate_path("Data",f"Diff_asym_scattering_mu_lead_{mu_lead}_flux_{flux}_diagonal","txt")
+all_max_diff_diagonal_new = np.log(np.loadtxt(path)) / np.log(10)
+all_max_diff_new = np.where(all_max_diff_new > all_max_diff_diagonal_new, all_max_diff_new, all_max_diff_diagonal_new)
+
+path = path_generator.generate_path("Data",f"Diff_sym_scattering_mu_lead_{mu_lead}_flux_{flux_old}","txt")
+all_max_diff_old = np.log(np.loadtxt(path)) / np.log(10)
+path = path_generator.generate_path("Data",f"Diff_sym_scattering_mu_lead_{mu_lead}_flux_{flux_old}_diagonal","txt")
+all_max_diff_diagonal_old = np.log(np.loadtxt(path)) / np.log(10)
+all_max_diff_old = np.where(all_max_diff_old > all_max_diff_diagonal_old, all_max_diff_old, all_max_diff_diagonal_old)
+
+
+v_min = min(np.min(all_max_diff), np.min(all_max_diff_old))
+v_max = max(np.max(all_max_diff), np.max(all_max_diff_old))
+
+
+fig, ax1 = plt.subplots()
+fig.set_size_inches(8, 6)
+ax1.set_xlabel('Correlated disorder strength (eV)')
+ax1.set_ylabel('Bulk potential mismatch (eV)')
+div = make_axes_locatable(ax1)
+cax = div.append_axes('right', '5%', '5%')
+ax1.set_title('Maximum TRS difference for half flux with callibration')
+im1 = ax1.imshow(all_max_diff_old ,extent = (min(Smags), max(Smags), min(mus), max(mus)),vmin = v_min, vmax = v_max ,origin='lower', aspect='auto')
+fig.colorbar(im1, cax=cax)
+path = path_generator.generate_path("Images",f"Poster_comparison","png")
+plt.savefig(path, dpi = 800) 
+plt.show()
 

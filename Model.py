@@ -271,7 +271,7 @@ filter_kernel = rv.pdf(pos)
 disorder = np.array([[[kwant.digest.gauss('('+str(ind_x)+ ',' +str(ind_y) + ',' +str(ind_z)+')')
                        for ind_z in range(H_z//a+1)]
                       for ind_x in range(L_x//a+1)]
-                     for ind_y in range(W_y//a+1)])
+                     for ind_y in range(W_y//a+1)])     # creates the disorder 
 
 disorder_fil = scipy.signal.fftconvolve(disorder, filter_kernel, mode='same')
 disorder_fil = disorder_fil/np.std(disorder_fil.flatten())
@@ -367,11 +367,11 @@ params_TI_sim = dict(A_perp=3.0,
 def check_probsymm(matrix, comp_error = 1e-2):
     prob_mat = np.abs(matrix) ** 2
     diff = prob_mat - prob_mat.T
-    print(abs(np.amax(diff)))
     
     if np.amax(diff) > comp_error:
         #print(diff)
         warnings.warn("Probability matrix is not symmetric")
+        print(abs(np.amax(diff)))
         #raise Exception('Probability matrix is not symmetric')
     
 
@@ -525,6 +525,26 @@ def find_SB(syst, p, n=0, calibration=None):
     return np.max(SB_matrix)
 
 
+def get_bands(syst, momenta, params=None, levels=0):
+    bands = kwant.physics.Bands(syst.leads[0], params=params)
+    energies = np.array([bands(k) for k in momenta])
+    if levels!=0:
+        mid = len(energies[0])//2
+        a=energies[:,mid-levels:mid]
+        b=energies[:,mid:mid+levels]
+        energies = np.concatenate((a,b),axis=1)
+        return energies
 
+
+def plot_bands(syst, momenta, params=None, levels=0):
+    energies = get_bands(syst, momenta, params, levels)
+    fig, ax = plt.subplots()
+    ax.set_xlabel('k')
+    ax.set_ylabel('Energy')
+    ax.plot(momenta, energies)
+    #ax.plot(momenta, np.full(len(momenta), 0.005), 'b--')
+    #ax.plot(momenta, np.full(len(momenta), 0.015), 'r--')
+    plt.legend()
+    plt.show()
 
 
