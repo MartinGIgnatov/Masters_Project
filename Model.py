@@ -132,12 +132,14 @@ ham_TI_lead2 = ham_TI_lead2.format(epsilon=epsilon, M=M, C_0="C_0")
 ham_discr_lead2, coords = kwant.continuum.discretize_symbolic(ham_TI_lead2)
 
 
+# Applies peierls space
+
 signs = [-1, -1, -1, -1, 1, 1, 1, 1]
 vector_potential='[-B_z * y, -B_x * z, -B_y * x]'
 ham_discr = peierls.apply(ham_discr, coords, A=vector_potential, signs=signs)
 ham_discr_lead1 = peierls.apply(ham_discr_lead1, coords, A=vector_potential, signs=signs)
 ham_discr_lead2 = peierls.apply(ham_discr_lead2, coords, A=vector_potential, signs=signs)
-
+#"""
 
 
 
@@ -178,11 +180,13 @@ nleads = 2
 
 lead_0 = kwant.Builder(kwant.TranslationalSymmetry((-a, 0, 0)),
                        conservation_law=conservation_law,
-                       particle_hole=particle_hole
+                       particle_hole=particle_hole#,
+                       #time_reversal = time_reversal
                       )
 lead_1 = kwant.Builder(kwant.TranslationalSymmetry((a, 0, 0)),
                        conservation_law=conservation_law,
-                       particle_hole=particle_hole
+                       particle_hole=particle_hole#,
+                       #time_reversal = time_reversal
                       )
 
 lead_0.fill(ti_lead_0, *get_shape_lead_0(L_x, W_y, H_z))
@@ -384,7 +388,7 @@ def fix_angles(angles):
 
 
         
-def scattering_matrix(syst, p, calibration=None, reorder = True):
+def scattering_matrix(syst, p, calibration = None, reorder = True):
     smat = kwant.smatrix(syst, params=p)
     #print(smat.submatrix(0, 0))
     #print(smat.submatrix(1, 1))
@@ -457,8 +461,9 @@ def scattering_matrix(syst, p, calibration=None, reorder = True):
                     check = False
                     #break
             if check:
-                warnings.warn("Cant find element for calibration. Parameters are : ")
-                print(p)
+                pass
+                #warnings.warn("Cant find element for calibration. Parameters are : ")
+                #print(p)
                 #raise Exception(f"Cant find element for calibration on {i}th row. Matrix.\n", smat_e, "\nParameters are : ", p)
         #print("Calibration")
         #df = pd.DataFrame(np.angle(calibration_e)/np.pi)
@@ -485,7 +490,7 @@ def energies_over_delta_calibrated(smat_e, size_L, size_R, phases=np.zeros(nlead
     smat_prod = smat_e.T.conj() @ mat_phase @ smat_e.T @ mat_phase.conj()
         #print(smat_prod)
     
-    operator = 0.5 * np.eye(smat_prod.shape[0]) + 0.25 * (smat_prod + smat_prod.T.conj())
+    operator = 0.5 * np.eye(smat_prod.shape[0]) - 0.25 * (smat_prod + smat_prod.T.conj())
     
     return np.sqrt(np.linalg.eigvalsh(operator))
 
@@ -498,7 +503,7 @@ def plot_ABS_spectrum_calibrated(syst, p, phases, r=False, calibration=None):
     ax.set_ylabel(r'$E/\Delta$')
 
     sol_list = []
-    smat_e, size_L, size_R = scattering_matrix(syst, p, calibration)
+    smat_e, size_L, size_R = scattering_matrix(syst, p)
     for p in (phases)*np.pi:
         phase = [0, p]
         sol_list.append(energies_over_delta_calibrated(smat_e, size_L, size_R, phases=phase))
@@ -544,7 +549,6 @@ def plot_bands(syst, momenta, params=None, levels=0):
     ax.plot(momenta, energies)
     #ax.plot(momenta, np.full(len(momenta), 0.005), 'b--')
     #ax.plot(momenta, np.full(len(momenta), 0.015), 'r--')
-    plt.legend()
     plt.show()
 
 
