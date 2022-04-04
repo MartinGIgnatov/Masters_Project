@@ -51,8 +51,8 @@ flux = "half"        # quarter, half, zero
 channel = "single" if mu_lead == 0.02 else "multi"
 plot = "diag"
 
-params_TI['S_mag'] = 0.001
-mismatch = 0.0
+params_TI['S_mag'] = 0.002
+mismatch = 0.05
 
 params_TI['mu_bulk'] = mu_lead + mismatch
 
@@ -83,7 +83,8 @@ all_max_diff = []
 mu_lead = 0.042
 params_TI['mu_lead1'] = mu_lead
 params_TI['mu_lead2'] = mu_lead
-flux = "500001" # quarter, half
+flux = "500712" # quarter, half
+suffix = "_new_disorder"
 
 computing_error = 1e-12
 
@@ -97,35 +98,14 @@ for i, mu in enumerate(mus):
         params_TI['S_mag'] = s
         
         try:
-            path = path_generator.generate_path(["Data","Antisymmetric_Scattering_Matrices",f"Scattering_Matrices_{params_TI['mu_lead1']}_flux_{flux}_reorder"],f"mu_bulk_{params_TI['mu_bulk']}_S_mag_{params_TI['S_mag']}","txt")
+            path = path_generator.generate_path(["Data","Antisymmetric_Scattering_Matrices",f"Scattering_Matrices_{params_TI['mu_lead1']}_flux_{flux}{suffix}"],f"mu_bulk_{params_TI['mu_bulk']}_S_mag_{params_TI['S_mag']}","txt")
             smat_e = np.loadtxt(fname = path,dtype=complex, converters={0: lambda s: complex(s.decode().replace('+-', '-'))})
         except:
             print(mu, s)
             raise Exception("ff")
-            
         
-        smat_e_T = np.transpose(smat_e)
-        
-        
-        #"""
-        abs_smat_e = np.absolute(smat_e)
-        abs_smat_e_T = np.transpose(abs_smat_e)
-        Average = (abs_smat_e + abs_smat_e_T)/2
-        
-        zeros = np.zeros(Average.shape)
-        norm_diff = np.absolute(smat_e - smat_e_T)/Average
-        
-
-        mask_non_diag = np.ones(zeros.shape) - np.identity(zeros.shape[0])
-        
-        diff = np.absolute(smat_e + smat_e_T) #* mask_non_diag
-
-        
-        all_diff = np.where( Average < computing_error, zeros , diff)
-        #"""
-        
+        all_diff = np.absolute(smat_e + smat_e.T)
         max_diff = np.amax(all_diff)
-        
         abs_diff.append(max_diff)
         
         time_current = time.time()
@@ -134,18 +114,9 @@ for i, mu in enumerate(mus):
 
         print("Time elapsed : ", "{:.1f}".format(time_current - time_start), "Time remaining : ", "{:.1f}".format(time_left), "Percentage : ", "{:.3f}".format(percentage*100))
         
-        
     all_max_diff.append(abs_diff)
-    
-    
-    
-    
-"""
-df = pd.DataFrame(all_diff)
-display(df)
-"""
 
-path = path_generator.generate_path("Data",f"Diff_asym_scattering_mu_lead_{params_TI['mu_lead1']}_flux_{flux}","txt")
+path = path_generator.generate_path("Data",f"Diff_asym_scattering_mu_lead_{params_TI['mu_lead1']}_flux_{flux}{suffix}","txt")
 np.savetxt(fname =path, X = np.array(all_max_diff))
 
 
@@ -159,13 +130,15 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 mu_lead = 0.042
 flux = "500001"
+suffix = "_negative_disorder" #_negative_disorder, _new_disorder
 
 mus = np.linspace(-0.05, 0.2, 51)
 Smags = np.linspace(0, 0.05, 51)
 
-path = path_generator.generate_path("Data",f"Diff_asym_scattering_mu_lead_{mu_lead}_flux_{flux}","txt")
-all_max_diff = np.loadtxt(path)
+path = path_generator.generate_path("Data",f"Diff_asym_scattering_mu_lead_{mu_lead}_flux_{flux}{suffix}","txt")
+all_max_diff = np.log10(np.loadtxt(path))
 
+plt.rcParams['font.size'] = '10'
 fig, ax = plt.subplots()
 ax.set_xlabel('Correlated disorder strength (eV)')
 ax.set_ylabel('Bulk potential mismatch (eV)')
@@ -173,14 +146,14 @@ div = make_axes_locatable(ax)
 
 
 cax = div.append_axes('right', '5%', '5%')
-ax.set_title(f'Abs Diff mu_lead = {mu_lead} flux = {flux}')
+#ax.set_title(f'Log10 of Abs Diff mu_lead = {mu_lead} flux = {flux}')
 im = ax.imshow(all_max_diff,extent = (min(Smags), max(Smags), min(mus), max(mus)), 
                  origin='lower', aspect='auto')
 fig.colorbar(im, cax=cax)
 
-path = path_generator.generate_path("Images",f"Diff_asym_scattering_mu_lead_{mu_lead}_flux_{flux}","png")
+path = path_generator.generate_path("Images",f"TRS_log_mu_lead_{mu_lead}_flux_{flux}{suffix}","png")
 
-plt.savefig(path) 
+plt.savefig(path, dpi = 1000) 
 
 
 #%%

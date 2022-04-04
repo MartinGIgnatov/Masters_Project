@@ -48,10 +48,20 @@ for i, mu in enumerate(mus_2):
     #smat_e = np.loadtxt(fname =path,dtype=complex, converters={0: lambda s: complex(s.decode().replace('+-', '-'))})
     #max_value_2.append(np.amax(np.absolute(smat_e + smat_e.T)))
     
+plt.rcParams['font.size'] = '12'
 fig, ax = plt.subplots()
 ax.set_yscale("log")
 plt.grid()
-ax.plot(mus_1, max_value_1, label = "A lot points")
+plt.rcParams['font.size'] = '14'
+#ax.title("Plot for TRS multichannel mu lead = 0.042 eV")
+ax.set_xlabel("Bulk potential mismatch (eV)")
+ax.set_ylabel("Magnitude of TRS conservation")
+ax.plot(mus_1, max_value_1, label = "Max values of TRS")
 #plt.plot(mus_2, max_value_2, label = "A few points")
+#plt.legend()
+
+path = path_generator.generate_path("Images","Magnitude TRS conservation for no disorder at mu lead = 0.042","png")
+
+plt.savefig(path, dpi = 1000) 
 
 plt.show()

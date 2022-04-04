@@ -492,32 +492,49 @@ def energies_over_delta_calibrated(smat_e, size_L, size_R, phases=np.zeros(nlead
     
     operator = 0.5 * np.eye(smat_prod.shape[0]) - 0.25 * (smat_prod + smat_prod.T.conj())
     
-    return np.sqrt(np.linalg.eigvalsh(operator))
+    eigen_values = np.linalg.eigvalsh(operator)
+    zeros = np.zeros(eigen_values.shape)
+    eigen_values = np.where( np.absolute(eigen_values) - 1e-10 < 0, zeros, eigen_values )
+    return np.sqrt(eigen_values) 
 
 
-def plot_ABS_spectrum_calibrated(syst, p, phases, r=False, calibration=None):
 
+def get_ABS_spectrum_calibrated(syst, p, phases, read_scattering_matrix=False, flux = ""):
     params = p.copy()
-    fig, ax = plt.subplots()
-    ax.set_xlabel(r'$\phi/\pi$')
-    ax.set_ylabel(r'$E/\Delta$')
-
     sol_list = []
-    smat_e, size_L, size_R = scattering_matrix(syst, p)
+    if read_scattering_matrix:
+        path = path_generator.generate_path(["Data","Antisymmetric_Scattering_Matrices",f"Scattering_Matrices_{params_TI['mu_lead1']}_flux_{flux}"],f"mu_bulk_{params_TI['mu_bulk']}_S_mag_{params_TI['S_mag']}","txt")
+        smat_e = np.loadtxt(fname = path,dtype=complex, converters={0: lambda s: complex(s.decode().replace('+-', '-'))})
+        size_L = int(smat_e.shape[0]/2)
+        size_R = size_L
+    else:
+        smat_e, size_L, size_R = scattering_matrix(syst, params)
     for p in (phases)*np.pi:
         phase = [0, p]
         sol_list.append(energies_over_delta_calibrated(smat_e, size_L, size_R, phases=phase))
     
     sol_list = np.array(sol_list).T
     sol_list2 = sol_list[::2]
+    return sol_list2
+
+
+
+def plot_ABS_spectrum_calibrated(syst, p, phases, read_scattering_matrix = False, flux = ""):
+    fig, ax = plt.subplots()
+    ax.set_xlabel(r'$\phi/\pi$')
+    ax.set_ylabel(r'$E/\Delta$')
+    
+    sols = get_ABS_spectrum_calibrated(syst, p, phases, read_scattering_matrix, flux)
+    
     i = 0
-    for sol in sol_list2:
+    for sol in sols:
         ax.plot(phases, sol, 'C'+str(i), label=str(i))
         ax.plot(phases, -1*sol, 'C'+str(i))
         i+=1
     ax.legend()
-    if r:
-        return sol_list2
+
+    
+    
     
 def find_gap(syst, p, n=0, calibration=None):
     smat_e, size_L, size_R = scattering_matrix(syst, p, calibration)
@@ -550,5 +567,16 @@ def plot_bands(syst, momenta, params=None, levels=0):
     #ax.plot(momenta, np.full(len(momenta), 0.005), 'b--')
     #ax.plot(momenta, np.full(len(momenta), 0.015), 'r--')
     plt.show()
+    
+    
+    
+def get_closest_index(val, list_data):
+    index = 0
+    diff = 1000
+    for i in range(len(list_data)):
+        if abs(val - list_data[i]) < diff:
+            diff = abs(val - list_data[i])
+            index = i
+    return index
 
 
