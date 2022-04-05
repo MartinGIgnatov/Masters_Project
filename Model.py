@@ -515,14 +515,21 @@ def plot_ABS_spectrum_calibrated(syst, p, phases, r=False, calibration=None):
         ax.plot(phases, sol, 'C'+str(i), label=str(i))
         ax.plot(phases, -1*sol, 'C'+str(i))
         i+=1
+        
     ax.legend()
     if r:
         return sol_list2
     
+    
 def find_gap(syst, p, n=0, calibration=None):
     smat_e, size_L, size_R = scattering_matrix(syst, p, calibration)
+    
     phases = [0, np.pi]
-    return 2*energies_over_delta_calibrated(smat_e, size_L, size_R, phases=phases)[n]
+    
+    return 2 * energies_over_delta_calibrated(smat_e, size_L, size_R, phases=phases)[n]
+
+
+
 
 def find_SB(syst, p, n=0, calibration=None):
     smat_e, size_L, size_R = scattering_matrix(syst, p, calibration)

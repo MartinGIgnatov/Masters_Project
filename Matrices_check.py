@@ -40,6 +40,26 @@ for i, mu in enumerate(mus):
         
 
 #%%
+
+mu_lead = 0.042
+
+params_TI["B_x"]      = 0.500712/(W_y*H_z)
+params_TI['mu_lead1'] = mu_lead
+params_TI['mu_lead2'] = mu_lead
+params_TI['mu_bulk'] = mu_lead + 0.01
+params_TI['S_mag'] = 0.001
+
+test_gap = find_gap(systf1, params_TI  , n=1, calibration=None)
+print(test_gap)
+
+phases = np.linspace(0,2,45)
+plot_ABS_spectrum_calibrated(systf1, params_TI, phases = phases)
+
+
+
+
+
+#%%
 # Plotting specific points from spectrum that are anomalous
 
 mu_lead = 0.042
@@ -64,9 +84,9 @@ plot_ABS_spectrum_calibrated(systf1, params_TI, phases = phases)
 
 plt.title(f"{channel}_flux={flux}_{plot}_S_mag={params_TI['S_mag']}_mismatch={mismatch}")
 
-path = path_generator.generate_path("Images",f"SpecificPoints_{channel}_flux={flux}_{plot}_S_mag={params_TI['S_mag']}_mismatch={mismatch}","png")
+#path = path_generator.generate_path("Images",f"SpecificPoints_{channel}_flux={flux}_{plot}_S_mag={params_TI['S_mag']}_mismatch={mismatch}","png")
 
-plt.savefig(path) 
+#plt.savefig(path) 
 
 
         
