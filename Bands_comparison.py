@@ -5,15 +5,20 @@ from Model import *
 #                     Test
 ###################################################   
 
-params_TI['mu_bulk'] = 0.042
-params_TI['mu_lead1'] = 0.03
-params_TI['mu_lead2'] = 0.03
-params_TI["B_x"] = 0.5/(W_y*H_z)    
-momenta = np.linspace(-0.2, 0.2, 101)
-plot_bands(systf1, momenta, levels=4, params=params_TI)
-r1 = get_bands(systf1, [0,1], levels=4, params=params_TI)
+mus   =  np.linspace(-0.05, 0.2, 51)
+Smags =  np.linspace(0, 0.05, 51)
 
-print(r1)
+params_TI['mu_bulk'] = 0
+params_TI['mu_lead1'] = 0.042
+params_TI['mu_lead2'] = 0.042
+
+params_TI["B_x"] = 0.500712/(W_y*H_z)    
+momenta = np.linspace(-0.2, 0.2, 101)
+plot_bands(systf1, momenta, levels=10, params=params_TI)
+
+#r1 = get_bands(systf1, [0,1], levels=8, params=params_TI)
+
+#print(r1)
 
 #%%
 
